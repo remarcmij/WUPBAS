@@ -1,0 +1,104 @@
+' This Winup Basic program finds out which raster operations the display
+' device driver supports
+
+' Raster Capabilities
+Global Const RC_BITBLT = 1      '  Can do standard BLT.
+Global Const RC_BANDING = 2     '  Device requires banding support
+Global Const RC_SCALING = 4     '  Device requires scaling support
+Global Const RC_BITMAP64 = 8    '  Device can support >64K bitmap
+Global Const RC_GDI20_OUTPUT = &H10     '  has 2.0 output calls
+Global Const RC_DI_BITMAP = &H80        '  supports DIB to memory
+Global Const RC_PALETTE = &H100 '  supports a palette
+Global Const RC_DIBTODEV = &H200        '  supports DIBitsToDevice
+Global Const RC_BIGFONT = &H400 '  supports >64K fonts
+Global Const RC_STRETCHBLT = &H800      '  supports StretchBlt
+Global Const RC_FLOODFILL = &H1000      '  supports FloodFill
+Global Const RC_STRETCHDIB = &H2000     '  supports StretchDIBits
+
+' ExtEnd Ifed Raster Capabilities
+Global Const RASTERCAPS = 38  '  Bitblt capabilities
+Global Const CAPS1 = 94
+Global Const TRANSPARENT = 1
+
+Declare Function GetDC Lib "User" (ByVal hWnd As Integer) As Integer
+Declare Function ReleaseDC Lib "User" (ByVal hWnd As Integer, ByVal hDC As Integer) As Integer
+Declare Function GetDeviceCaps Lib "GDI" (ByVal hDC As Integer, ByVal nIndex As Integer) As Integer
+
+Sub Main()
+   ' Get a screen DC
+   hdc = GetDC(0)
+   ' Get raster capabilities
+   iRC = GetDeviceCaps(hdc, RASTERCAPS)
+   ' Get extended raster capabilities
+   iRCX = GetDeviceCaps(hdc, CAPS1)
+   ReleaseDC 0, hdc
+   
+   slCaps = New Slist
+   If iRC And RC_BITBLT Then
+      slCaps.AddItem "Can do BitBlt's"
+   Else
+      slCaps.AddItem "Can't do BitBlt's"
+   End If
+   If iRC And RC_BANDING Then
+      slCaps.AddItem "Can do Banding" 
+   Else
+      slCaps.AddItem "Can't do Banding"
+   End If
+   If iRC And RC_SCALING Then
+      slCaps.AddItem "Can do Scaling"
+   Else
+      slCaps.AddItem "Can't do Scaling"
+   End If
+   If iRC And RC_BITMAP64 Then
+      slCaps.AddItem "Can do bitmaps >64K"
+   Else
+      slCaps.AddItem "Can't do bitmaps >64K"
+   End If
+   If iRC And RC_GDI20_OUTPUT Then
+      slCaps.AddItem "Can do GDI 2.0 output calls"
+   Else
+      slCaps.AddItem "Can't do GDI 2.0 output calls"
+   End If
+   If iRC And RC_DI_BITMAP Then
+      slCaps.AddItem "Can do DIB to memory"
+   Else
+      slCaps.AddItem "Can't do DIB to memory"
+   End If
+   If iRC And RC_PALETTE Then
+      slCaps.AddItem "Can do Palette"
+   Else
+      slCaps.AddItem "Can't do Palette"
+   End If
+   If iRC And RC_DIBTODEV Then
+      slCaps.AddItem "Can do DIBitsToDevice"
+   Else
+      slCaps.AddItem "Can't do DIBitsToDevice"
+   End If
+   If iRC And RC_BIGFONT Then
+      slCaps.AddItem "Can do >64K fonts"
+   Else
+      slCaps.AddItem "Can't do >64K fonts"
+   End If
+   If iRC And RC_STRETCHBLT Then
+      slCaps.AddItem "Can do StretchBlt"
+   Else
+      slCaps.AddItem "Can't do StretchBlt"
+   End If
+   If iRC And RC_FLOODFILL Then
+      slCaps.AddItem "Can do FloodFill"
+   Else
+      slCaps.AddItem "Can't do FloodFill"
+   End If
+   If iRC And RC_STRETCHDIB Then
+      slCaps.AddItem "Can do StrechDIBits" 
+   Else
+      slCaps.AddItem "Can't do StretchDIBits"
+   End If
+   If iRCX And TRANSPARENT Then
+      slCaps.AddItem "Can do transparent BitBlt's" 
+   Else
+      slCaps.AddItem "Can't do transparent BitBlt's"
+   End If
+   slCaps.ListBox "Display driver raster capabilities:"
+End Sub
+

@@ -1,0 +1,24 @@
+LIBRARY     WUPBAS
+
+DESCRIPTION 'Winup Basic DLL - (C)Shell Internationale Petroleum Mij, 1993'
+
+EXETYPE     WINDOWS       ; required for all Windows applications
+
+STUB        'WINSTUB.EXE'  ; Generates error message if application
+                          ; is run without Windows
+
+CODE        PRELOAD MOVEABLE DISCARDABLE
+DATA        PRELOAD SINGLE MOVEABLE
+
+HEAPSIZE    8192
+
+EXPORTS
+    WEP                    @1 RESIDENTNAME
+    WBINITIALIZE           @2
+    WBRUN                  @3
+    WBDEINITIALIZE         @4
+    WBREGISTERCMDCALLBACK  @5
+    WBSETSTRINGVARIABLE    @6
+    WBSETLONGVARIABLE      @7
+    WBABOUTSTRING          @8
+

@@ -1,0 +1,31 @@
+Global Const POLYGONALCAPS = 32
+
+Global Const PC_POLYGON     = 0x0001
+Global Const PC_RECTANGLE   = 0x0002
+Global Const PC_WINDPOLYGON = 0x0004
+Global Const PC_SCANLINE    = 0x0008
+Global Const PC_WIDE        = 0x0010
+Global Const PC_STYLED      = 0x0020
+Global Const PC_WIDESTYLED  = 0x0040
+Global Const PC_INTERIORS   = 0x0080
+
+Declare Function GetDC Lib "User" (ByVal hWnd As Integer) As Integer
+Declare Function ReleaseDC Lib "User" (ByVal hWnd As Integer, ByVal hDC As Integer) As Integer
+Declare Function GetDeviceCaps Lib "GDI" (ByVal hDC As Integer, ByVal nIndex As Integer) As Integer
+
+Sub Main()
+   ' Get a screen DC
+   hdc = GetDC(0)
+   ' Get raster capabilities
+   iRC = GetDeviceCaps(hdc, POLYGONALCAPS)
+   ReleaseDC 0, hdc
+   
+   If iRC And PC_RECTANGLE Then
+      Beep @MB_IconExclamation
+      MsgBox "The display driver CAN DO rectangles.", @MB_IconExclamation
+   Else
+      Beep @MB_IconInformation
+      MsgBox "The display driver can't do rectangles.", @MB_IconInformation
+   EndIf
+EndSub
+

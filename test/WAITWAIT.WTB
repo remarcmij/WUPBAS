@@ -1,0 +1,5 @@
+sub main()
+   shell "d:\winword\winword.exe",,@wait
+   msgbox "returned from waitwait.wtb"
+endsub
+

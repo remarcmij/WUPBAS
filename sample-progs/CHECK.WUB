@@ -1,0 +1,251 @@
+Sub Main()
+Title = "Built-in Function Tests"
+
+'=============================================================================
+' CONDITIONAL LOGIC TESTS
+'=============================================================================
+Value = 0
+If True Then
+   Value = 1
+ElseIf True Then
+   Value = 2
+ElseIf True Then
+   Value = 3
+Else
+   Value = 4
+End If
+If Value <> 1 Then
+   MsgBox "IF001 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+
+Value = 0
+If @False Then
+   Value = 1
+ElseIf True Then
+   Value = 2
+ElseIf True Then
+   Value = 3
+Else
+   Value = 4
+End If
+If Value <> 2 Then
+   MsgBox "IF002 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+
+Value = 0
+If @False Then
+   Value = 1
+ElseIf @False Then
+   Value = 2
+ElseIf True Then
+   Value = 3
+Else
+   Value = 4
+End If
+If Value <> 3 Then
+   MsgBox "IF003 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+
+Value = 0
+If @False Then
+   Value = 1
+ElseIf @False Then
+   Value = 2
+ElseIf @False Then
+   Value = 3
+Else
+   Value = 4
+End If
+If Value <> 4 Then
+   MsgBox "IF004 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+
+Value = 0
+If @False Then
+   Value = 1
+ElseIf @False Then
+   Value = 2
+ElseIf @False Then
+   Value = 3
+End If
+If Value <> 0 Then
+   MsgBox "IF005 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+
+i = 0
+While i < 10
+   i = i + 1
+Wend
+If i <> 10 Then
+   MsgBox "WHILE001 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+
+i = 0
+k = 0
+While i < 10
+   j = 0
+   While j < 10
+      j = j + 1
+      k = k + 1
+   Wend
+   i = i + 1
+Wend
+'If k <> 100 Then
+'   MsgBox "WHILE002 FAILED", @MB_ICONEXCLAMATION, Title
+'End If
+
+'=============================================================================
+' EXPRESSION EVALUATOR TESTS
+'=============================================================================
+
+'-----------------------------------------------------------------------------
+' Test setting and getting of variables with numeric representation
+'-----------------------------------------------------------------------------
+NumVar = 1
+If NumVar <> 1 Then
+   MsgBox "TEST003 FAILED", @MB_ICONEXCLAMATION, Title
+Endif
+
+'-----------------------------------------------------------------------------
+' Test setting and getting of variables with string representation
+'-----------------------------------------------------------------------------
+StringVar = "ABCDE"
+If StringVar <> "ABCDE" Then
+   MsgBox "TEST005 FAILED", @MB_ICONEXCLAMATION, Title
+Endif
+
+'-----------------------------------------------------------------------------
+' Test string to number conversion
+'-----------------------------------------------------------------------------
+StringVar = "123"
+If StringVar+1 <> 124 Then
+   MsgBox "TEST006 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+
+'-----------------------------------------------------------------------------
+' Test number to string conversion
+'-----------------------------------------------------------------------------
+StringVar = "ABC"
+If StringVar & 1 <> "ABC1" Then
+   MsgBox "TEST007 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+
+
+'-----------------------------------------------------------------------------
+' Test of Instr()
+'-----------------------------------------------------------------------------
+'
+' Two parameters
+'
+Option Compare Binary
+' Find mid string
+If InStr( "ABCDEF", "CD" ) <> 3 Then
+   MsgBox "INSTR001 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+' Do not find
+If InStr( "ABCDEF", "cd" ) <> 0 Then
+   MsgBox "INSTR002 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+' Find at beginning of string
+If InStr( "ABCDEF", "AB" ) <> 1 Then
+   MsgBox "INSTR003 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+' Find at end of string
+If InStr( "ABCDEF", "EF" ) <> 5 Then
+   MsgBox "INSTR004 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+' Do not find beyond string
+If InStr( "ABCDEF", "FG" ) <> 0 Then
+   MsgBox "INSTR005 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+' If <strexpr1> is zero-length zero is returned
+If InStr( "", "EF" ) <> 0 Then
+   MsgBox "INSTR006 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+' If <strexpr2> is zero-length, <start> is returned
+If InStr( "ABCDEF", "" ) <> 1 Then
+   MsgBox "INSTR007 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+
+'
+' Three parameters
+'
+If InStr( 2, "ABCDEF", "CD" ) <> 3 Then
+   MsgBox "INSTR008 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+If InStr( 3, "ABCDEF", "CD" ) <> 3 Then
+   MsgBox "INSTR009 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+If InStr( 4, "ABCDEF", "CD" ) <> 0 Then
+   MsgBox "INSTR010 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+If InStr( 2, "ABCDEF", "cd" ) <> 0 Then
+   MsgBox "INSTR011 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+If InStr( 100, "ABCDEF", "CD" ) <> 0 Then
+   MsgBox "INSTR012 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+' If <strexpr2> is zero-length, <start> is returned
+If InStr( 3, "ABCDEF", "" ) <> 3 Then
+   MsgBox "INSTR014 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+'
+' Four parameters
+'
+If InStr( 1, "ABCDEF", "CD", 0 ) <> 3 Then
+   MsgBox "INSTR015 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+If InStr( 1, "ABCDEF", "cd", 0 ) <> 0 Then
+   MsgBox "INSTR016 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+If InStr( 1, "ABCDEF", "CD", 1 ) <> 3 Then
+   MsgBox "INSTR017 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+If InStr( 1, "ABCDEF", "cd", 1 ) <> 3 Then
+   MsgBox "INSTR018 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+
+'-----------------------------------------------------------------------------
+' Test of Left()
+'-----------------------------------------------------------------------------
+If Left("ABCDE",2) <> "AB" Then
+   MsgBox "LEFT001 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+If Left("ABCDE","2") <> "AB" Then
+   MsgBox "LEFT002 FAILED", @MB_ICONEXCLAMATION, Title
+End If
+
+'-----------------------------------------------------------------------------
+' Test of FileExist()
+'-----------------------------------------------------------------------------
+If Not FileExist( "C:\AUTOEXEC.BAT" ) Then
+   MsgBox "FileExist error 1", @MB_ICONEXCLAMATION, Title
+End If
+
+If FileExist( "C:\$JUNK$" ) Then
+   MsgBox "FileExist error 2", @MB_ICONEXCLAMATION, Title
+End If
+
+'-----------------------------------------------------------------------------
+' Test of DirExist()
+'-----------------------------------------------------------------------------
+If Not DirExist( "C:\WINDOWS" ) Then
+   MsgBox "DirExist error 1", @MB_ICONEXCLAMATION, Title
+End If
+
+If DirExist( "C:\$JUNK$" ) Then
+   MsgBox "DirExist error 2", @MB_ICONEXCLAMATION, Title
+End If
+
+IniWritePvt "Test", "Value", "1 2 3", "C:\WINDOWS\JUNK.INI"
+if IniReadPvt( "Test", "Value", "Error", "C:\WINDOWS\JUNK.INI" ) <> "1 2 3" Then
+   MsgBox "IniReadPvt/IniWritePvt error 1", @MB_ICONEXCLAMATION, Title
+End If
+
+IniDeletePvt "Test", "Value", "C:\WINDOWS\JUNK.INI"
+if IniReadPvt( "Test", "Value", "Default", "C:\WINDOWS\JUNK.INI" ) <> "Default" Then
+   MsgBox "IniDeletePvt error 1", @MB_ICONEXCLAMATION, Title
+End If
+
+MsgBox "End of test"
+End Sub

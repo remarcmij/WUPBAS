@@ -1,0 +1,22 @@
+Global Const POLYGONALCAPS = 32
+Global Const PC_RECTANGLE = 0x0002
+
+Declare Function GetDC Lib "User" (ByVal hWnd As Integer) As Integer
+Declare Function ReleaseDC Lib "User" (ByVal hWnd As Integer, ByVal hDC As Integer) As Integer
+Declare Function GetDeviceCaps Lib "GDI" (ByVal hDC As Integer, ByVal nIndex As Integer) As Integer
+
+Sub Main()
+   ' Get a screen DC
+   hdc = GetDC(0)
+   ' Get raster capabilities
+   iRC = GetDeviceCaps(hdc, POLYGONALCAPS)
+   ReleaseDC 0, hdc
+
+   If iRc And PC_RECTANGLE Then
+      MsgBox "Has PC_RECTANGLE capabilities"
+   Else
+      MsgBox "Does NOT have PC_RECTANGLE capabilities"
+   EndIf
+EndSub
+
+

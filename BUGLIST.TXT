@@ -1,0 +1,4 @@
+.LOG
+Typing mistake in Declare e.g. Delcare doesn't procedure error message in WUPBAS
+14:16  21/03/95
+Word [NEW] drops off when script title is slightly too large. (Fails to trunc string with ...)

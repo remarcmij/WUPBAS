@@ -1,0 +1,10 @@
+Sub Main()
+   LoadDLL "wtlnetw.dll"
+   MsgBox GetFullName()
+EndSub
+
+Sub GetFullName()
+a=1
+EndSub
+
+

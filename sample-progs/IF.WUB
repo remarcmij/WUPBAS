@@ -1,0 +1,165 @@
+Sub Main()
+ErrorCount = 0
+'-----------------------------------------------------------------------------
+' Check that all braches in a single If/ElseIf/Else/End If sequence are visited
+'-----------------------------------------------------------------------------
+For i = 1 to 4
+   If i = 1 Then
+      a1 = 1
+   ElseIf i = 2 Then
+      a2 = 2
+   ElseIf i = 3 Then
+      a3 = 3
+   Else
+      a4 = 4
+   End If
+Next i
+If a1 <> 1 Then
+   MsgBox "TEST001 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a2 <> 2 Then
+   MsgBox "TEST002 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a3 <> 3 Then
+   MsgBox "TEST003 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a4 <> 4 Then
+   MsgBox "TEST004 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If i <> 5 Then
+   MsgBox "TEST005 failed"
+   ErrorCount = ErrorCount + 1
+End If
+
+'-----------------------------------------------------------------------------
+' Test combination of nested If's and While's
+'-----------------------------------------------------------------------------
+i = 1
+While i < 5
+   j = 1
+   While j < 5
+      If i = 1 Then
+         If j = 1 Then
+            a11 = 11
+         ElseIf j = 2 Then
+            a12 = 12
+         ElseIf j = 3 Then
+            a13 = 13
+         Else
+            a14 = 14
+         End If
+      ElseIf i = 2 Then
+         If j = 1 Then
+            a21 = 21
+         ElseIf j = 2 Then
+            a22 = 22
+         ElseIf j = 3 Then
+            a23 = 23
+         Else
+            a24 = 24
+         End If
+      ElseIf i = 3 Then
+         If j = 1 Then
+            a31 = 31
+         ElseIf j = 2 Then
+            a32 = 32
+         ElseIf j = 3 Then
+            a33 = 33
+         Else
+            a34 = 34
+         End If
+      Else
+         If j = 1 Then
+            a41 = 41
+         ElseIf j = 2 Then
+            a42 = 42
+         ElseIf j = 3 Then
+            a43 = 43
+         Else
+            a44 = 44
+         End If
+      End If
+      j = j + 1
+   Wend
+   i = i + 1
+Wend
+If a11 <> 11 Then
+   MsgBox "TEST006 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a12 <> 12 Then
+   MsgBox "TEST007 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a13 <> 13 Then
+   MsgBox "TEST008 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a14 <> 14 Then
+   MsgBox "TEST009 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a21 <> 21 Then
+   MsgBox "TEST010 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a22 <> 22 Then
+   MsgBox "TEST011 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a23 <> 23 Then
+   MsgBox "TEST012 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a24 <> 24 Then
+   MsgBox "TEST013 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a31 <> 31 Then
+   MsgBox "TEST014 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a32 <> 32 Then
+   MsgBox "TEST015 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a33 <> 33 Then
+   MsgBox "TEST016 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a34 <> 34 Then
+   MsgBox "TEST017 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a41 <> 41 Then
+   MsgBox "TEST018 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a42 <> 42 Then
+   MsgBox "TEST019 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a43 <> 43 Then
+   MsgBox "TEST020 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If a44 <> 44 Then
+   MsgBox "TEST021 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If i <> 5 Then
+   MsgBox "TEST022 failed"
+   ErrorCount = ErrorCount + 1
+End If
+If j <> 5 Then
+   MsgBox "TEST022 failed"
+   ErrorCount = ErrorCount + 1
+End If
+
+MsgBox "ErrorCount = " & ErrorCount, 0, "If/While Tests"
+End Sub
+   

@@ -1,0 +1,51 @@
+'
+' The syntax for Declare in Winup Basic is identical to the Declare in
+' Microsoft Visual Basic. While Winup Basic only supports the Variant
+' data type, parameters in Declare statements should be typed as Integer,
+' Long or String. This allows Winup Basic to convert the variant value to
+' the appropriate type expected by the DLL routine, and vice versa.
+' Next to using the As <type> to declare the data type it is also allowed
+' to use the '$', '%' and '&' symbols to declare the data type.
+'
+Declare Function NWGetPrimaryConnectionID Lib "NWCalls.DLL" (hconn As Integer) As Integer
+Declare Function NWGetConnectionNumber Lib "NWCalls.DLL" (ByVal hconn As Integer, nconn As Integer) As Integer
+Declare Function NWGetConnectionInformation% Lib "NWCalls.DLL" (ByVal hconn%, ByVal nconn%, ByVal szUserID$, wObjectType%, dwObjectID&, achLoginTime$)
+Declare Function NWReadPropertyValue% Lib "NWCalls.DLL" (ByVal hconn%, ByVal szObjectName$, ByVal wObjectType%, ByVal szPropName$, ByVal nSegNum%, achSegData$, fMoreSegs%, fPropFlags As Any)
+
+Function NetGetFullName()
+
+   'Parameters passed by reference must exist before they can be passed
+   'to a function. We create them using the assigment statement.
+
+   hconn = 0
+   nconn = 0
+   wObjectType = 0
+   dwObjectID = 0
+   fMoreSegs = 0
+
+   ccode = NWGetPrimaryConnectionID(hconn)
+   If ccode = 0 Then
+      ccode = NwGetConnectionNumber(hconn, nconn)
+   EndIf
+
+   If ccode = 0 Then
+      szUserID = Space(48)
+      achLoginTime = Space(7)
+      ccode = NWGetConnectionInformation(hconn, nconn, szUserID, wObjectType, dwObjectID, achLoginTime)
+   EndIf
+
+   If ccode = 0 Then
+      achSegData = Space(128)
+      'Notice the last parameter: it effectively passes a NULL pointer.
+      'This is they same mechanism as used in Visual Basic
+      ccode = NWReadPropertyValue(hconn, szUserID, 0x100, "IDENTIFICATION", 1, achSegData, fMoreSegs, ByVal 0)
+   EndIf
+
+   If ccode = 0 Then
+      'The TruncString function truncates a Winup Basic string at the first
+      'zero byte (i.e. it converts a C string to a Basic string)
+      NetGetFullName = TruncString(achSegData)
+   Else
+      NetGetFullName = ""
+   EndIf
+EndFunction

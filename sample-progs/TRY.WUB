@@ -1,0 +1,5 @@
+Sub Main()
+   LoadLib "getfulnm.wub"
+   
+   MsgBox "Full name = " & NetGetFullName()
+EndSub

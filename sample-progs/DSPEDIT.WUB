@@ -1,0 +1,46 @@
+Sub Main()
+   sRumbaDir = "c:\prog\rumba"
+   sIPPrefix = "145.26.20"
+   
+   slDspFiles = FileList(sRumbaDir & "\*.dsp")
+   if slDspFiles.Count = 0 Then
+      sMsg = "Cannot find DSP files in directory " & sRumbaDir & "."
+      Beep @MB_IconStop
+      MsgBox sMsg, @MB_IconStop
+      Exit
+   EndIf
+
+   Do   
+      iItem = slDspFiles.ListBox("Please select DSP file to edit:")
+      If iItem = -1 Then
+         ExitDo
+      EndIf
+         
+      sFileName = slDspFiles.List(iItem)
+      
+      iLen = FileLen(sFileName)
+      fiDsp = New File
+      fiDsp.Open sFileName, @Binary
+      
+      sBuffer = fiDsp.Read(iLen)
+      iPos = InStr(sBuffer, sIPPrefix)
+      If iPos = 0 Then
+         sMsg = "Cannot locate host IP address in " & sFileName & "."
+         Beep @MB_IconStop
+         MsgBox sMsg, @MB_IconStop
+         Exit
+      EndIf
+      
+      sIPAddress = TruncString(Mid(sBuffer, iPos, 15))
+      sNewIPAddress = InputBox("Please enter new IP address:", "Winup Basic", sIPAddress)
+      If sNewIPAddress <> "" Then
+         sIPAdresss = String(15, 0)
+         sIPAddress = Overlay(sIPAddress, 1, Trim(sNewIPAddress))
+         sBuffer = Overlay(sBuffer, iPos, sIPAddress)
+         fiDsp.SeekSet 0
+         fiDsp.Write sBuffer
+      EndIf
+      
+      fiDsp.Close
+   Loop
+EndSub 

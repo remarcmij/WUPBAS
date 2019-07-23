@@ -1,0 +1,11 @@
+Declare Function GetVersion Lib "Kernel" () As  Long
+
+Sub Main()
+   t = Timer()
+   x = 0
+   For i = 1 To 10000
+      x = GetVersion()
+   Next i
+   t = Timer()-t
+   MsgBox t & " " & Hex(x)
+EndSub

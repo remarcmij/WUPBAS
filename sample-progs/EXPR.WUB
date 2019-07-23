@@ -1,0 +1,68 @@
+sub main()
+title = "Expression evaluator failure"
+btn = @mb_iconexclamation
+
+'-----------------------------------------------------------------------------
+' Simple arithmetic
+'-----------------------------------------------------------------------------
+if 10 + 20 <> 30 then
+   msgbox "ADD001", btn, title
+endif
+if 10 - 20 <> -10 then
+   msgbox "SUB001", btn, title
+endif
+if 10 * 20 <> 200 then
+   msgbox "MUL001", btn, title
+endif
+if 20 / 10 <> 2 then
+   msgbox "DIV001", btn, title
+endif
+if 20 MOD 15 <> 5 then
+   msgbox "MOD001", btn, title
+endif
+
+'-----------------------------------------------------------------------------
+' Operator precedence
+'-----------------------------------------------------------------------------
+if 10 * 20 + 30 <> 230 then
+   msgbox "OPR001", btn, title
+endif
+if 10 + 20 * 30 <> 610 then
+   msgbox "OPR002", btn, title
+endif
+if 10 * (20 + 30) <> 500 then
+   msgbox "OPR003", btn, title
+endif
+if (10 + 20) * 30 <> 900 then
+   msgbox "OPR004", btn, title
+endif
+
+'-----------------------------------------------------------------------------
+' Mixed-type expressions
+'-----------------------------------------------------------------------------
+if -10 <> "-10" then
+   msgbox "CVT001", btn, title
+endif
+if "+10" <> +10 then
+   msgbox "CVT002", btn, title
+endif
+if "10"+20 <> 30 then
+   msgbox "CVT003", btn, title
+endif
+if 30 <> "10"+20 then
+   msgbox "CVT004", btn, title
+endif
+
+'-----------------------------------------------------------------------------
+' Hexadecimal constant conversion
+'-----------------------------------------------------------------------------
+' ...of form 0x...
+if not 0x1234 = 4660 then
+   msgbox "HEX001", btn, title
+endif
+' ...of form &h...
+if not &h1234 = 4660 then
+   msgbox "HEX002", btn, title
+endif
+endsub
+

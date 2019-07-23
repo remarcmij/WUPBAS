@@ -1,0 +1,29 @@
+/* wbfnwin.h */
+
+ERR FAR PASCAL WBFnBeep( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnCheckBox( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnCPUType( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnFindModule( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnFindWindow( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnGetInstance( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnGetSystemMetrics( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnGetWinDir( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnIniDelete( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnIniDeletePvt( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnIniFlush( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnIniFlushPvt( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnIniList( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnIniRead( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnIniReadPvt( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnIniWrite( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnIniWritePvt( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnEnableLargeDialogs( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnInputBox( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnOptionBox( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnMsgBox( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnExitWindows( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnExitWindowsExec( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnShowWaitCursor( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnRestoreCursor( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnShell( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnShellWait( int narg, LPVAR lparg, LPVAR lpResult );

@@ -1,0 +1,17 @@
+Sub Main()
+   If IsCompaq() Then
+      MsgBox "This is a Compaq PC."
+   Else
+      MsgBox "This is NOT a Compaq PC."
+   EndIf
+EndSub
+
+Function IsCompaq()
+   If ReadROMBios(&HFFEA,6) = "COMPAQ" Then
+      IsCompaq = True
+   Else
+      IsCompaq = False
+   EndIf
+EndFunction      
+      
+

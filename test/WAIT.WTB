@@ -1,0 +1,5 @@
+sub main()
+   shell "c:\wupdev\wtrun.exe waitwait.wtb",,@wait
+   msgbox "Returned from wait.wtb"
+endsub
+

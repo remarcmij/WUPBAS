@@ -1,0 +1,26 @@
+Sub Main()
+   sCaption = "WIN.INI Viewer"
+   slSection = GetSectionList()
+   Do
+      idx = slSection.ListBox("Select WIN.INI section to view:", sCaption)
+      If idx = -1 Then
+         ExitDo
+      EndIf
+      sSection = slSection.List(idx)
+      slValues = IniList(sSection)
+      slValues.ListBox "Contents of [" & sSection & "]:", sCaption
+   Loop
+   slSection.Clear
+EndSub
+
+Function GetSectionList()
+   slIni = LoadFile("win.ini")
+   idx = 0
+   slSection = New Slist
+   Do While slIni.Find("[", idx)
+      slSection.AddItem Mid(slIni.Text, 2, Len(slIni.Text)-2)
+      idx = slIni.Index + 1
+   Loop
+   GetSectionList = slSection
+EndFunction
+      

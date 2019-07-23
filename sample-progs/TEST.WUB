@@ -1,0 +1,3 @@
+Sub Main()
+   FileCopy "c:\data\c\wup\wupbas\test.wub", "c:\data\c\wup\wupbas\proef23.wub"
+End Sub

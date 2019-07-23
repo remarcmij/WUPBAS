@@ -1,0 +1,7 @@
+Sub Main()
+   a = FileList("c:\*.bat")
+   a.additem "1"
+   a.AddItem "2"
+   a.AddItem "3"
+   a.ListBox "test"
+EndSub

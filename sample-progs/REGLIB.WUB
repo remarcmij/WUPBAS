@@ -1,0 +1,18 @@
+Declare Function RegOpenKey Lib "Shell" (ByVal hkey As Long, ByVal lpszSubKey As String, lphkResult As Long) As Long
+Declare Function RegCloseKey Lib "Shell" (ByVal hkey As Long) As Long
+Declare Function RegQueryValue Lib "Shell" (ByVal hkey As Long, ByVal lpszSubKey As Any, lpszValue As String, lpcb As Long) As Long
+
+Sub Main()
+   hkey = 0;   
+   err = RegOpenKey(1,".c", hkey )
+   If err <> 0 Then
+      MsgBox "Error"
+   Else
+      iLen = 256
+      sValue = String(iLen,0)
+      x = RegQueryValue(hkey,0,sValue,iLen)
+      sValue = Left(sValue,iLen)
+      MsgBox "sValue=" & sValue
+      x = RegCloseKey(hkey)
+   End If
+End Sub

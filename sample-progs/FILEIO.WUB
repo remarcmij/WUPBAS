@@ -1,0 +1,22 @@
+option compare text
+filename = "c:\vutoexec.bat"
+
+if not filexist( filename ) then
+   msgbox "Cannot find " & filename
+   end
+endif
+
+open filename for input as #1
+do while not eof(1)
+   line input#1, text
+   text = trim(text)
+   if left(text, 4) = "PATH" then
+      msgbox text
+      exitdo
+   endif      
+loop
+close #1
+
+
+
+

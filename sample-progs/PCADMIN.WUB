@@ -1,0 +1,249 @@
+Global sWinDir
+Global sWinupExeDir
+Global sDetailIni
+Global bNetwarePresent
+
+'-----------------------------------------------------------------------------
+'
+'-----------------------------------------------------------------------------
+Sub LibMain()
+
+   If FindModule("NETWARE.DRV") Then
+      LoadDLL "WTLNETW.DLL"
+      bNetwarePresent = True
+   Else
+      bNetwarePresent = False
+   EndIf
+
+   sWinDir = GetWinupString("_WINDIR")
+   sWinupExeDir = GetWinupString("_WINUPEXEDIR")
+   sDetailIni = "pcdetail.ini"
+EndSub
+
+'-----------------------------------------------------------------------------
+'
+'-----------------------------------------------------------------------------
+Sub UpdateConfigDetails()
+
+   sLastReviewDate = IniRead( "Details", "LastReview", "", sDetailIni)
+   If sLastReviewDate = "" Then
+      bInitialize = True
+   Else
+      bInitialize= False
+   EndIf
+
+   If Word(sLastReviewDate, 1) <> Word( Now(), 1) Then
+      ReviewConfigDetails bInitialize
+      IniWrite "Details","LastReview", Now(), sDetailIni
+   EndIf
+EndSub
+
+'-----------------------------------------------------------------------------
+'
+'-----------------------------------------------------------------------------
+Function GetConfigDetail(sKey)
+   GetConfigDetail = IniRead("Details", sKey, "", sDetailIni)
+EndFunction
+
+'-----------------------------------------------------------------------------
+'
+'-----------------------------------------------------------------------------
+Sub SetConfigDetail(sKey, sValue)
+   IniWrite "Details", sKey, sValue, sDetailIni
+EndSub
+'-----------------------------------------------------------------------------
+'
+'-----------------------------------------------------------------------------
+Sub ReviewConfigDetails(bInitialize)
+
+   bPromptIssued = False
+
+   If bNetwarePresent Then
+      sSavedMACAddress = IniRead("Details","MACAddress","",sDetailIni)
+      sMACAddress = RightPart(GetInternetAddress(),":")
+
+      If sSavedMACAddress = "" Then
+         IniWrite "Details","MACAddress",sMACAddress, sDetailIni
+         bInitalize = True
+      Else
+         sMACAddress = RightPart(GetInternetAddress(),":")
+         If sMACAddress <> sSavedMACAddress Then
+            IniWrite "Details","MACAddress",sMACAddress, sDetailIni
+            sMsgText = "The Ethernet MAC Address stored in PCDETAIL.INI is "
+            sMsgText = sMsgText & "different from the MAC Address reported by the "
+            sMsgText = sMsgText & "network card. Please review all details very "
+            sMsgText = sMsgText & "carefully."
+            Beep @MB_IconExclamation
+            MsgBox sMsgText,@MB_IconExclamation
+            bInitialize = True
+            bPromptIssued = True
+         EndIf
+      EndIf
+   EndIf
+
+   iChecksum = 0
+   sROMSample = ReadROMBios(&HFF00,256)
+   For i = 1 to 256
+      iChecksum = iChecksum + Asc(Mid(sROMSample,i,1))
+   Next i
+   iChecksum = iChecksum And &HFFFF
+
+   sSavedChecksum = IniRead("Details","BiosChecksum","",sDetailIni)
+   If sSavedChecksum = "" Then
+      IniWrite "Details","BiosChecksum",iChecksum,sDetailIni
+      bInitialize = True
+   ElseIf sSavedChecksum <> iChecksum Then
+      IniWrite "Details","BiosChecksum",iChecksum,sDetailIni
+      bInitialize = True
+      If Not bPromptIssued Then
+         sMsgText = "The PCDETAIL.INI file has been copied from another PC and is "
+         sMsgText = sMsgText & "may not contain the correct details. "
+         sMsgText = sMsgText & "Please review all details very "
+         sMsgText = sMsgText & "carefully."
+         Beep @MB_IconExclamation
+         MsgBox sMsgText,@MB_IconExclamation
+      EndIf
+   EndIf
+
+   If bInitialize Then
+      ConfigInitialize
+   EndIf
+
+   If Not FileExist( sWinDir & "\system\vbrun300.dll") Then
+      FileCopy sWinupExeDir & "\winupext\vbrun300.dll", sWinDir & "\system\vbrun300.dll"
+   EndIf
+   Shell sWinupExeDir & "\winupext\pcadmin.exe",,@Wait
+   LogWrite "PC No. " & GetConfigDetail("AssetNumber")
+EndSub
+
+'-----------------------------------------------------------------------------
+'
+'-----------------------------------------------------------------------------
+Sub ConfigInitialize()
+
+   sAssetNumber = IniRead("Details", "AssetNumber", "", sDetailIni)
+   sUserName    = IniRead("Details", "UserName", "", sDetailIni)
+   sRefInd      = IniRead("Details", "RefInd", "", sDetailIni)
+   sUserId      = IniRead("Details", "UserId", "", sDetailIni)
+   sPortable    = IniRead("Details", "Portable", "0", sDetailIni)
+   sLaunch      = IniRead("Details", "Launch", "0", sDetailIni)
+   sVendor      = IniRead("Details", "Vendor", "Compaq", sDetailIni)
+   sNetCard     = ""
+
+   'Try and extract user info from WIN.INI
+   If sAssetNumber = "" Then
+      sAssetNumber = UCase(IniRead("MS Word User", "AssetNr", ""))
+   EndIf
+   If sUserName = "" Then
+      sUserName = IniRead("MS Word User", "Name", "")
+   EndIf
+   If sRefInd = "" Then
+      sRefInd = UCase(IniRead("MS Word User", "Ref", ""))
+   EndIf
+   If sUserId = "" Then
+      sUserId = UCase(IniRead("MS Word User", "Email", ""))
+   EndIf
+
+   'Normalize asset number to an "A" followed by 6 digits
+   If sAssetNumber <> "" Then
+      sNewNumber = Trim(sAssetNumber)
+      If Left(sNewNumber,1) = "A" Then
+         sNewNumber = Mid(sNewNumber,2)
+      EndIf
+      sNewNumber = "A" & Right( "000000" & sAssetNumber,6)
+      If sNewNumber <> sAssetNumber Then
+         sAssetNumber = sNewNumber
+         IniWrite "Details","AssetNumber",sAssetNumber,sDetailIni
+      EndIf
+   EndIf
+
+   'If this PC has the ODI/VLM/FTP stack we can get a hint on whether this
+   'PC is a portable by looking at the SET NETCONFG line.
+   If FileExist("c:\lan\netconfg.bat") Then
+      slFile = LoadFile("c:\lan\netconfg.bat")
+      If slFile.FindEx("SET NETCONFG") Then
+         sNetConfg = RightPart(slFile.Text)
+         If sNetConfg = 2 Then
+            sPortable = "1"
+         Else
+            sPortable = "0"
+         EndIf
+      EndIf
+   EndIf
+
+   'Try and find a ROM BIOS vendor signature
+   If ReadROMBios(&HFFEA,6) = "COMPAQ" Then
+      sVendor = "Compaq"
+   ElseIf ReadROMBios(&H56EB,5) = "TULIP" Or ReadROMBios(&H7A7E,5) = "TULIP" Then
+      sVendor = "Tulip"
+   Else
+      sVendor = "Unknown"
+   EndIf
+
+   'If there is a local copy of Word then we will assume this is a
+   'non-launched PC.
+   If FileExist("C:\PROG\WFW\WINWORD.EXE") Then
+      sLaunch = "0"
+   Else
+      sLaunch = "1"
+   EndIf
+
+   If bNetwarePresent Then
+      sMacAddress = RightPart(GetInternetAddress(),":")
+      sMacHiPart = Left(sMacAddress,6)
+      If sMacHiPart = "00608C" Or sMacHiPart = "0020AF" Then
+         sNetCard = "3C509"
+      ElseIf sMacHiPart = "00805F" Then
+         sNetCard = "NETFLEX"
+      ElseIf sMacHiPart = "00DD00" Or sMacHiPart = "00DD01" Then
+         sNetCard = "NIUPC"
+      EndIf
+   EndIf
+
+   'If there is a C:\LAN\NET.CFG directory we will inspect this file
+   'for the network card type
+   If FileExist("c:\lan\net.cfg") Then
+      slFile = LoadFile("c:\lan\net.cfg")
+      If slFile.FindEx("Link Driver") Then
+         sDriver = Word(slFile.Text, 3)
+         If sDriver = "3C509" Then
+            sNetCard = "3C509"
+         ElseIf sDriver = "3C507" Then
+            sNetCard = "3C507"
+         ElseIf sDriver = "PCNTNW" Then
+            sNetCard = "NETFLEX"
+         ElseIf sDriver = "INTEL595" Then
+            sNetCard = "INTEL595"
+         ElseIf sDriver = "UBODI" Then
+            sNetCard = "NIUPC"
+         EndIf
+      EndIf
+   EndIf
+
+   'If there is a ELNK16.DOS device driver in CONFIG we will assume
+   'the network card is a 3C507
+   slFile = LoadFile("c:\config.sys")
+   If slFile.Locate("elnk16.dos") Then
+      sNetCard = "3C507"
+   ElseIf slFile.Locate("elnk3.dos") Then
+      sNetCard = "3C509"
+   EndIf
+
+   'If there is a STDLC file in the network directory we will assume
+   'this PC has an NIUpc card.
+   If sNetCard = "" Then
+      If FileExist("c:\network\stdlc") Then
+         sNetCard = "NIUPC"
+      EndIf
+   EndIf
+
+   IniWrite "Details", "AssetNumber", sAssetNumber, sDetailIni
+   IniWrite "Details", "UserName", sUserName, sDetailIni
+   IniWrite "Details", "RefInd", sRefInd, sDetailIni
+   IniWrite "Details", "UserId", sUserId, sDetailIni
+   IniWrite "Details", "Portable", sPortable, sDetailIni
+   IniWrite "Details", "Launch", sLaunch, sDetailIni
+   IniWrite "Details", "Vendor", sVendor, sDetailIni
+   IniWrite "Details", "NetCard", sNetCard, sDetailIni
+
+EndSub

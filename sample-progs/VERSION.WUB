@@ -1,0 +1,194 @@
+Declare Function GetFileVersionInfoSize& Lib "ver.dll" (ByVal lpszFileName$, lpdwHandle&)
+Declare Function GetFileVersionInfo% Lib "ver.dll" (ByVal lpszFileName$, ByVal handle&, ByVal cb&, ByVal lpvData$)
+Declare Function VerQueryValue% Lib "ver.dll" (ByVal lpvBlock$, ByVal lpszSubBlock$, lplpBuffer&, lpcb&) 
+Declare Sub hmemcpy Lib "Kernel" (lpvDest As Any, lpvSource As Any, ByVal cbCopy As Long)
+
+Global slVersionInfo, slLang, slCharSet
+
+Sub Main()
+
+   slVersionInfo = New Slist
+   slVersionInfo.AddItem "CompanyName"
+   slVersionInfo.AddItem "FileDescription"
+   slVersionInfo.AddItem "FileVersion"
+   slVersionInfo.AddItem "InternalName"
+   slVersionInfo.AddItem "OriginalFilename"
+   slVersionInfo.AddItem "ProductName"
+   slVersionInfo.AddItem "ProductVersion"
+
+   slLang = New Slist
+   slLang.AddItem "0401,Arabic"
+   slLang.AddItem "0402,Bulgarian" 
+   slLang.AddItem "0403,Catalan" 
+   slLang.AddItem "0404,Traditional Chinese"
+   slLang.AddItem "0405,Czech"
+   slLang.AddItem "0406,Danish" 
+   slLang.AddItem "0407,German" 
+   slLang.AddItem "0408,Greek"
+   slLang.AddItem "0409,U.S. English"
+   slLang.AddItem "040A,Castilian Spanish"
+   slLang.AddItem "040B,Finnish"
+   slLang.AddItem "040C,French"
+   slLang.AddItem "040D,Hebrew"
+   slLang.AddItem "040E,Hungarian"
+   slLang.AddItem "040F,Icelandic"
+   slLang.AddItem "0410,Italian"
+   slLang.AddItem "0411,Japanese" 
+   slLang.AddItem "0412,Korean" 
+   slLang.AddItem "0413,Dutch" 
+   slLang.AddItem "0414,Norwegian - Bokmål"
+   slLang.AddItem "0415,Polish"
+   slLang.AddItem "0416,Brazilian Portuguese"
+   slLang.AddItem "0417,Rhaeto-Romanic"
+   slLang.AddItem "0418,Romanian"
+   slLang.AddItem "0419,Russian" 
+   slLang.AddItem "041A,Croato-Serbian (Latin)"
+   slLang.AddItem "041B,Slovak" 
+   slLang.AddItem "041C,Albanian" 
+   slLang.AddItem "041D,Swedish"
+   slLang.AddItem "041E,Thai"
+   slLang.AddItem "041F,Turkish" 
+   slLang.AddItem "0420,Urdu" 
+   slLang.AddItem "0421,Bahasa" 
+   slLang.AddItem "0804,Simplified Chinese"
+   slLang.AddItem "0807,Swiss German"
+   slLang.AddItem "0809,U.K. English"
+   slLang.AddItem "080A,Mexican Spanish"
+   slLang.AddItem "080C,Belgian French"
+   slLang.AddItem "0810,Swiss Italian" 
+   slLang.AddItem "0813,Belgian Dutch" 
+   slLang.AddItem "0814,Norwegian - Nynorsk"
+   slLang.AddItem "0816,Portuguese"
+   slLang.AddItem "081A,Serbo-Croatian (Cyrillic)"
+   slLang.AddItem "0C0C,Canadian French"
+   slLang.AddItem "100C,Swiss French"
+
+   slCharSet = New Slist
+   slCharSet.AddItem "0,7-bit ASCII"
+   slCharSet.AddItem "932,Windows, Japan (Shift - JIS X-0208)"
+   slCharSet.AddItem "949,Windows, Korea (Shift - KSC 5601)"
+   slCharSet.AddItem "950,Windows, Taiwan (GB5)"
+   slCharSet.AddItem "1200,Unicode"
+   slCharSet.AddItem "1250,Windows, Latin-2 (Eastern European)"
+   slCharSet.AddItem "1251,Windows, Cyrillic"
+   slCharSet.AddItem "1252,Windows, Multilingual"
+   slCharSet.AddItem "1253,Windows, Greek"
+   slCharSet.AddItem "1254,Windows, Turkish"
+   slCharSet.AddItem "1255,Windows, Hebrew"
+   slCharSet.AddItem "1256,Windows, Arabic" 
+   
+   sCaption = "File Version Information"
+   sFilter = "Executables(*.exe;*.dll)|*.exe;*.dll|All files(*.*)|*.*"
+   sFileName = ""
+   sInitialDir = GetWinDir()
+   Do
+      sFileName = FileSelect(sInitialDir,sFilter, sCaption, sFileName)
+      If sFileName = "" Then
+         ExitDo
+      EndIf
+      ListFileInfo sFileName, sCaption
+      sTemp = Token(sFileName, Tokens(sFileName, "\"), "\")
+      iPos = InStr(sFileName, sTemp)
+      If iPos <> 0 Then
+         sInitialDir = Left(sFileName, iPos-1)      
+         sFileName = sTemp
+      EndIf
+   Loop
+EndSub
+
+Sub ListFileInfo(sFileName, sCaption)
+
+   'Try and get the size of the version information block
+   dwHandle = 0
+   dwSize = GetFileVersionInfoSize(sFileName, dwHandle)
+
+   'If size is zero, no version information is available
+   If dwSize = 0 Then
+      Beep @MB_IconExclamation
+      MsgBox "No version information available.",@MB_IconExclamation
+   Else
+   
+      'Create a string large enough to hold the version info
+      sVersionData = Space(dwSize)
+      
+      'Retrieve the version information block
+      bResult = GetFileVersionInfo(sFileName, dwHandle, dwSize, sVersionData)
+      If bResult = 0 Then
+         MsgBox "GetFileVersionInfo returned in error."
+         Stop
+      EndIf
+      
+      'Get a pointer to the language/charset pair
+      lplpBuffer = 0
+      bResult = VerQueryValue(sVersionData, "\VarFileInfo\Translation", lplpBuffer, dwSize)
+      If bResult = 0 Then
+         MsgBox "Could not retrieve translation information.", @MB_IconStop
+         Stop
+      EndIf
+   
+      'Copy the language/charset pair into a long
+      dwLangInfo = 0
+      hmemcpy dwLangInfo, ByVal lplpBuffer, 4
+
+      wCharSet = (dwLangInfo And 0xFFFF000) >> 16
+      wLangID = dwLangInfo And 0x0000FFFF
+      
+      sCharSet = Right("0000" & Hex(wCharSet), 4)
+      sLangID = Right("0000" & Hex(wLangID), 4)
+      
+      sLangChar = sLangID & sCharSet
+      
+      'Results will be accumulated in slResult
+      slResult = New Slist
+      
+      'Get the values of the required entries
+      For i = 0 To slVersionInfo.Count-1
+      
+         'Compose a fully qualified string name
+         sStringName = "\StringFileInfo\" & sLangChar & "\" & slVersionInfo.List(i)
+      
+         'Get a pointer to the string value   
+         bResult = VerQueryValue(sVersionData, sStringName, lplpBuffer, dwSize)
+         If bResult = 0 Then
+            sLangChar = sLangID & "0000"
+            sStringName = "\StringFileInfo\" & sLangChar & "\" & slVersionInfo.List(i)
+            bResult = VerQueryValue(sVersionData, sStringName, lplpBuffer, dwSize)
+            If bResult = 0 Then
+               MsgBox "VerQueryValue returned in error",@MB_IconStop
+               Stop
+            EndIf
+         EndIf
+         
+         sValue = Space(dwSize)
+         'Copy the value into the string
+         hmemcpy ByVal sValue, ByVal lplpBuffer, dwSize
+         
+         'Add the value to the slResult Slist
+         slResult.AddItem slVersionInfo.List(i) & ":"
+         slResult.AddItem "  " & sValue
+      Next i
+      
+      If slLang.Find(sLangID) Then
+         slResult.AddItem "Language:"
+         slResult.AddItem "  " & Token(slLang.Text, 2)
+      EndIf
+      If slCharSet.Find(wCharSet) Then
+         slResult.AddItem "Character Set:"
+         slResult.AddItem "  " & RightPart(slCharSet.Text, ",")
+      EndIf
+      
+      'Show the accumulated results through a ListBox
+      iSel = -1
+      Do   
+         iSel = slResult.ListBox("File Version Info for:|" & LCase(sFileName), sCaption, iSel)
+         If iSel = -1 Then
+            ExitDo
+         Else
+            If (iSel Mod 2) = 0 Then
+               iSel = iSel + 1
+            EndIf
+            MsgBox Trim(slResult.List(iSel)),@MB_IconInformation,slResult.List(iSel-1)
+         EndIf
+      Loop
+   EndIf
+EndSub

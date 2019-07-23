@@ -1,0 +1,29 @@
+/* wbfnstr.h */
+
+ERR FAR PASCAL WBFnAsc( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnChr( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnHex( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnIniCaps( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnInStr( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnIsNumeric( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnToken( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnTokens( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnTokenCount( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnTokenExtract( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnLcase( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnLeft( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnLeftPart( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnOverlay( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnRightPart( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnLen( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnLTrim( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnMid( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnRight( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnRTrim( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnSpace( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnStr( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnString( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnTrim( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnUcase( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnWord( int narg, LPVAR lparg, LPVAR lpResult );
+ERR FAR PASCAL WBFnWords( int narg, LPVAR lparg, LPVAR lpResult );

@@ -1,0 +1,605 @@
+'*****************************************************************************
+'*                                                                           *
+'* Win Update Basic Utility Library for use with Win Update scripts          *
+'* ----------------------------------------------------------------          *
+'*                                                                           *
+'* This library is a collection of Winup Basic functions and subroutines     *
+'* for the more common modifications to the DOS/Windows start-up and INI     *
+'* files.                                                                    *
+'*                                                                           *
+'* Author:  J. Cramer, SIPM-ODHC/36                                          *
+'*                                                                           *
+'* Created: 10/10/93                                                         *
+'*                                                                           *
+'* Revision history:                                                         *
+'*                                                                           *
+'* Date     Inits  Reason                                                    *
+'* ======== =====  ========================================================= *
+'* 29/05/94 JC     Added dialog to allow user to remove directories from     *
+'*                 the PATH if it is or becomes to long (AddPath and         *
+'*                 DelPath functions).                                       *
+'*                 Implemented several improvements in the code.             *
+'*                                                                           *
+'*****************************************************************************
+                                                                             
+'-----------------------------------------------------------------------------
+' Function AddPath( slist, sPathItem, position )              '
+' Purpose:  Adds an item to the PATH statement in AUTOEXEC.BAT, if not
+'           already present.
+'
+' Argument  Type      Description
+' --------- ---------  -----------------------------------------------------
+' slist     SLIST or  If an SLIST object reference is passed in <slist>
+'           long      the file "C:\AUTOEXEC.BAT" is assumed to be loaded
+'                     in the SLIST object. The AddPath function will apply
+'                     the modification on the SLIST object passed, but will
+'                     not save AUTOEXEC.BAT to disk. Use this calling 
+'                     method if you wish to apply more updates to 
+'                     AUTOEXEC.BAT without saving intermediate results to
+'                     disk.
+'                       
+'                     In the alternate calling method, the value of zero
+'                     should be passed in <slist>. When called this way
+'                     AddPath will load "C:\AUTOEXEC.BAT", apply the 
+'                     modification and save the modified file back to
+'                     disk. A backup file will be created, using the default
+'                     BAK extension.
+'
+' sPathItem  String    Item to add to the PATH statement
+'
+' bFirst     Long     (Boolean) If <bFirst> is zero (e.g. @False), the item is
+'                     added at the beginning of the path list.
+'                     If non-zero (e.g. @True), the item is added at the end 
+'                     of the path list.
+'                                                             
+' Return value:
+'
+' Value    Description
+' -------- -----------------------------------------------------------------
+' @True    The item was not already in the path list, and the modification 
+'          was applied.
+'
+' @False   The item was already in the path list and no modification was
+'          applied.
+'-----------------------------------------------------------------------------
+Function AddPath( slist, sPathItem, bFirst )
+   bLoadSave = LoadSave("AddPath", "C:\AUTOEXEC.BAT", slist)
+   If bLoadSave Then
+      slAuto = LoadFile("C:\AUTOEXEC.BAT")
+   Else
+      slAuto = slist
+   EndIf
+   
+   sPathItem = UCase(sPathItem)
+   AddPath = @False
+   
+   'If no PATH is present, check for SET PATH.
+   'If found, change SET PATH in PATH before continuing.
+   If Not slAuto.Find("PATH") Then
+      If slAuto.FindEx("SET PATH") Then
+         sPath = Trim(slAuto.Text)
+         iPos = InStr(sPath, " ")
+         sPath = Trim(Mid(sPath, iPos+1))
+         slAuto.List(slAuto.Index) = sPath
+      EndIf
+   EndIf
+   
+   If slAuto.FindEx("PATH") Then
+   
+      'Convert PATH to upper case
+      sPath = UCase(Trim(slAuto.Text))
+      
+      'Extract directory list from PATH command
+      sPathList = LTrim(Mid(sPath, 5))
+      'Remove '=' sign if present
+      If Left(sPathList,1) = "=" Then
+         sPathList = LTrim(Mid(sPathList, 2))
+      EndIf
+
+      bIsPresent = @False      
+      For i = 1 To Tokens(sPathList, ";")
+         sItem = Trim(Token(sPathList, i, ";"))
+         If sItem = sPathItem Then
+            bIsPresent = @True
+            ExitFor
+         EndIf
+      Next i
+      
+      If Not bIsPresent Then
+         If bFirst Then
+            If Left(sPathList, 1) <> ";" Then
+               sPathList = ";" & sPathList
+            EndIf
+            sPathList = sPathItem & sPathList
+         Else
+            If Right(sPathList, 1) <> ";" Then
+               sPathList = sPathList & ";"
+            EndIf
+            sPathList = sPathList & sPathItem
+         EndIf
+         AddPath = @True
+      EndIf
+      
+      If Right(sPathList, 1) <> ";" Then
+         sPathList = sPathList & ";"
+      EndIf
+      
+      sNewPath = "PATH " & sPathList
+      
+      If Len(sNewPath) > 127 Then
+         sNewPath = ReducePathLength(sNewPath)
+      EndIf
+      slAuto.List(slAuto.Index) = sNewPath
+   Else
+      sNewPath = "PATH " & sPathItem & ";"
+      slAuto.AddItem sNewPath,0
+      MsgBox "Warning: No PATH statement was present in AUTOEXEC.BAT",@MB_ICONEXCLAMATION,"AddPath"
+   EndIf
+   
+   If slAuto.Modified And bLoadSave Then
+      slAuto.Save
+   EndIf
+EndFunction
+
+'-----------------------------------------------------------------------------
+' Function DelPath( slist, sPathItem )
+'
+' Purpose:  Delete an item from the PATH statement in AUTOEXEC.BAT
+'
+' Argument  Type      Description
+' --------- ---------  -----------------------------------------------------
+' slist     SLIST or  If an SLIST object reference is passed in <slist>
+'           long      the file "C:\AUTOEXEC.BAT" is assumed to be loaded
+'                     in the SLIST object. The AddPath function will apply
+'                     the modification on the SLIST object passed, but will
+'                     not save AUTOEXEC.BAT to disk. Use this calling 
+'                     method if you wish to apply more updates to 
+'                     AUTOEXEC.BAT without saving intermediate results to
+'                     disk.
+'                       
+'                     In the alternate calling method, the value of zero
+'                     should be passed in <slist>. When called this way
+'                     AddPath will load "C:\AUTOEXEC.BAT", apply the 
+'                     modification and save the modified file back to
+'                     disk. A backup file will be created, using the default
+'                     BAK extension.
+'
+' sPathItem  String    Item to delete from the PATH statement
+'
+' Return value:
+'
+' Value    Description
+' -------- -----------------------------------------------------------------
+' @True    The item was deleted from the PATH statement.
+'
+' @False   The item was not present in the PATH statement.
+'
+Function DelPath( slist, sPathItem )
+   bLoadSave = LoadSave("DelPath", "C:\AUTOEXEC.BAT", slist)
+   If bLoadSave Then
+      slAuto = LoadFile("C:\AUTOEXEC.BAT")
+   Else
+      slAuto = slist
+   EndIf
+   
+   DelPath = @False
+   
+   'If no PATH is present, check for SET PATH.
+   'If found, change SET PATH in PATH before continuing.
+   If Not slAuto.Find("PATH") Then
+      If slAuto.FindEx("SET PATH") Then
+         sPath = Trim(slAuto.Text)
+         iPos = InStr(sPath, " ")
+         sPath = Trim(Mid(sPath, iPos+1))
+         slAuto.List(slAuto.Index) = sPath
+      EndIf
+   EndIf
+   
+   If slAuto.FindEx("PATH") Then
+   
+      'Convert PATH to upper case
+      sPath = UCase(Trim(slAuto.Text))
+      
+      'Extract directory list from PATH command
+      sPathList = LTrim(Mid(sPath, 5))
+      'Remove '=' sign if present
+      If Left(sPathList,1) = "=" Then
+         sPathList = LTrim(Mid(sPathList, 2))
+      EndIf
+
+      sNewPath = "PATH "
+      For i = 1 To Tokens(sPathList, ";")
+         sItem = Trim(Token(sPathList, i, ";"))
+         If sItem = sPathItem Then
+            DelPath = @True
+         ElseIf sItem <> "" Then
+            sNewPath = sNewPath & sItem & ";"
+         EndIf
+      Next i
+      
+      If Right(sNewPath, 1) <> ";" Then
+         sNewPath = sNewPath & ";"
+      EndIf
+      If Len(sNewPath) > 127 Then
+         sNewPath = ReducePathLength(sNewPath)
+      EndIf
+      slAuto.List(slAuto.Index) = sNewPath
+   Else
+      MsgBox "Warning: No PATH statement was present in AUTOEXEC.BAT",@MB_ICONEXCLAMATION,"DelPath"
+   EndIf
+      
+   If slAuto.Modified And bLoadSave Then
+      slAuto.Save
+   EndIf
+EndFunction
+
+'-----------------------------------------------------------------------------
+' Function ReducePathLength(sPath)
+'
+' This function is called when the PATH is too long. It prompts the user
+' to select directories that can be removed from the path such that the
+' combined length is <= 127 characters.
+'
+' Arguments:
+'  sPath    Original PATH
+'
+' Return value:
+'  New PATH
+'-----------------------------------------------------------------------------
+Function ReducePathLength(sPath)
+
+   iPos = InStr(sPath, " ")
+   sNewPath = Trim(Mid(sPath, iPos+1))
+   
+   Do
+      iPathLen = 5      ' "PATH" + space
+      
+      slItem = New Slist
+      For i = 1 to Tokens(sNewPath, ";")
+         sItem = Word(Token(sNewPath, i, ";") ,1)
+         If sItem <> "" Then
+            iPathLen = iPathLen + Len(sItem) + 1
+            slItem.AddItem sItem
+         EndIf
+      Next i
+      
+      slRemoved = New Slist
+      Do
+         Do
+            sPrompt = "The PATH exceeds the DOS limit of 127 characters. "
+            sPrompt = sPrompt & "Please select directory to remove:"
+            iCount = slRemoved.Count
+            If iCount > 0 Then
+               sPrompt = sPrompt & "|" & iCount
+               If iCount > 1 Then
+                  sPrompt = sPrompt  & " directories"
+               Else
+                  sPrompt = sPrompt  & " directory"
+               EndIf
+               sPrompt = sPrompt  & " removed."
+            EndIf
+            idx = slItem.ListBox(sPrompt, "Current Path Length = " & iPathLen)
+            If idx = -1 Then
+               ExitDo
+            Else
+               sItem = slItem.List(idx)
+               slItem.RemoveItem idx
+               slRemoved.AddItem sItem
+               iPathLen = iPathLen - Len(sItem) - 1
+            EndIf
+         Loop Until iPathLen <= 127
+
+         'Check Path Length
+         If iPathLen > 127 Then
+            sMsg = "The PATH is still too long. Do you wish to remove more "
+            sMsg = sMsg & " directories?"
+            iYesNo = MsgBox(sMsg, @MB_IconExclamation+@MB_YesNo)
+            If iYesNo = @No Then
+               ExitDo
+            EndIf
+         EndIf
+      Loop Until iPathLen <= 127
+
+      If slRemoved.Count > 0 Then      
+         sMsg = "The following directories will be removed from the PATH:"
+         For i = 1 to slRemoved.Count
+            sMsg = sMsg & "|" & slRemoved.List(i-1)
+         Next i
+         iOkCancel = MsgBox(sMsg, @MB_IconExclamation+@MB_OkCancel)
+         If iOkCancel = @Ok Then
+            sNewPath = "PATH "
+            For i = 1 to slItem.Count
+               sNewPath = sNewPath & slItem.List(i-1) & ";"
+            Next i
+            ExitDo
+         EndIf
+      Else
+         sNewPath = sPath
+         ExitDo
+      EndIf
+   Loop
+   
+   ReducePathLength = sNewPath
+EndFunction   
+   
+'-----------------------------------------------------------------------------
+' Function ConfigGetKeyValue( slist, sKey )
+'
+' Purpose:  Get the value of a CONFIG.SYS parameter (parameter name must be
+'           unique and cannot be DEVICE, DEVICEHIGH or any other non-unique
+'           parameter name.
+'
+' Argument  Type      Description
+' --------- ---------  -----------------------------------------------------
+' slist     SLIST or  If an SLIST object reference is passed in <slist>
+'           long      the file "C:\CONFIG.SYS" is assumed to be loaded
+'                     in the SLIST object.
+'
+'                     In the alternate calling method, the value of zero
+'                     should be passed in <slist>. When called this way
+'                     ConfigGetKeyValue will load "C:\CONFIG.SYS" itself.
+'
+' sKey       String   The parameter name for which the value is to be 
+'                     returned.
+'
+' Return value:
+'
+' The value of the key, or the null string if the parameter is not present
+' in CONFIG.SYS
+'-----------------------------------------------------------------------------
+Function ConfigGetKeyValue( slist, sKey )
+   bLoadSave = LoadSave("ConfigGetKeyValue", "C:\CONFIG.SYS", slist)
+   If bLoadSave Then
+      slConfig = LoadFile("C:\CONFIG.SYS")
+   Else
+      slConfig = slist
+   EndIf
+   If slConfig.FindEx(sKey & "=") Then
+      ConfigGetKeyValue = RightPart(slConfig.Text)
+   Else
+      ConfigGetKeyValue = ""
+   EndIf
+EndFunction
+
+'-----------------------------------------------------------------------------
+' Sub ConfigSetKeyValue slist, sKey, sNewValue
+'
+' Purpose:  Set the value of a CONFIG.SYS parameter (parameter name must be
+'           unique and cannot be DEVICE, DEVICEHIGH or any other non-unique
+'           parameter name.
+'
+' Argument  Type      Description
+' --------- ---------  -----------------------------------------------------
+' slist     SLIST or  If an SLIST object reference is passed in <slist>
+'           long      the file "C:\CONFIG.SYS" is assumed to be loaded
+'                     in the SLIST object.
+'
+'                     In the alternate calling method, the value of zero
+'                     should be passed in <slist>. When called this way
+'                     ConfigSetKeyValue will load "C:\CONFIG.SYS", apply
+'                     the modification, and save the file back to disk.
+'                     A backup file with the default BAK extension will
+'                     be created.
+'
+' sKey       String   The key (item to the left of equal sign) for which
+'                     the value is to be set. If the key does not exist,
+'                     the key/value pair is added to the top of the file.
+'
+' sNewValue  String   The value to be assigned to the key.
+'-----------------------------------------------------------------------------
+Sub ConfigSetKeyValue( slist, sKey, sNewValue )
+   bLoadSave = LoadSave("ConfigSetKeyValue", "C:\CONFIG.SYS", slist)
+   If bLoadSave Then
+      slConfig = LoadFile("C:\CONFIG.SYS")
+   Else
+      slConfig = slist
+   EndIf
+   sNewEntry = Trim(sKey) & "=" & Trim(sNewValue)
+   If slConfig.FindEx(sKey & "=") Then
+      slConfig.List(slConfig.Index) = sNewEntry
+   Else
+      slConfig.AddItem sNewEntry, 0
+   EndIf
+   If slConfig.Modified And bLoadSave Then
+      slConfig.Save
+   EndIf
+EndSub
+
+'-----------------------------------------------------------------------------
+' Function ConfigAddDevice( sDeviceSpec, bLoadHigh, bReplace, slist )
+'
+' Purpose:  Adds or replaces a device in CONFIG.SYS
+'
+' Argument    Type      Description
+' ----------- -------- -----------------------------------------------------
+' sDeviceSpec String   The filename of the device and optional parameters.
+'                      Do not include "device=" or "devicehigh=" in 
+'                      sDeviceSpec.
+'
+' bLoadHigh   Boolean  If True, the device will be loaded in conventional
+'                      memory ("device="). If False the device will be loaded
+'                      in upper memory ("devicehigh=").
+'
+' bReplace    Boolean  If True, the device will not be added if the device is
+'                      already present in CONFIG.SYS.
+'                      If False an existing device in CONFIG.SYS will be 
+'                      replaced by sDeviceSpec.
+'
+' slist     SLIST or   If an SLIST object reference is passed in <slist>
+'           long       the file "C:\CONFIG.SYS" is assumed to be loaded
+'                      in the SLIST object. The ConfigAddDevice function will apply
+'                      the modification on the SLIST object passed, but will
+'                      not save CONFIG.SYS to disk. Use this calling 
+'                      method if you wish to apply more updates to 
+'                      CONFIG.SYS without saving intermediate results to
+'                      disk.
+'                       
+'                      In the alternate calling method, the value of zero
+'                      should be passed in <slist>. When called this way
+'                      ConfigAddDevice will load "C:\CONFIG.SYS", apply the 
+'                      modification and save the modified file back to
+'                      disk.
+'
+' Return value:
+'
+' Value    Description
+' -------- -----------------------------------------------------------------
+' @True    The device was added or replaced.
+'
+' @False   The device exist already in CONFIG.SYS and was not replaced.
+'-----------------------------------------------------------------------------
+Function ConfigAddDevice( sDeviceSpec, bLoadHigh, bReplace, slist )
+
+   bLoadSave = LoadSave("ConfigSetKeyValue", "C:\CONFIG.SYS", slist)
+   If bLoadSave Then
+      slConfig = LoadFile("C:\CONFIG.SYS")
+   Else
+      slConfig = slist
+   EndIf
+   
+   sDeviceSpec = Trim(sDeviceSpec)
+   ConfigAddDevice = @False
+   
+   'Extract file name from device spec
+   sFileName = Word(sDeviceSpec, 1)
+   
+   'Remove path info from file name
+   sFileName = Token(sFileName, Tokens(sFilename, "\"), "\")
+   
+   'If device is present already, replace it if bReplace is True.
+   'Otherwise leave it as it is.
+   bPresent = @False
+   idx = 0
+   Do
+      If slConfig.Locate(sFilename, idx) Then
+         sText = Trim(slConfig.Text)
+         If Left(sText, 6) = "DEVICE" Then
+            sFileName1 = Trim(RightPart(sText))
+            sFileName1 = Token(sFileName1, Tokens(sFilename1, "\"), "\")
+            If sFileName1 = sFileName Then
+               If bReplace Then
+                  slConfig.RemoveItem slConfig.Index
+               Else
+                  bPresent = @True
+               EndIf
+               ExitDo
+            EndIf
+         EndIf
+      EndIf
+      idx = idx+1
+      If idx >= slConfig.Count Then
+         ExitDo
+      EndIf
+   Loop
+   
+   If Not bPresent Then
+      If bLoadHigh Then
+         sDeviceSpec = "devicehigh=" & sDeviceSpec
+      Else
+         sDeviceSpec = "device=" & sDeviceSpec
+      EndIf
+      ' Add new device after last device statement
+      ' or at end of file
+      If slConfig.Find("device", slConfig.Count-1, 0 ) Then
+         slConfig.AddItem sDeviceSpec, slConfig.Index+1
+      Else
+         slConfig.AddItem sDeviceSpec
+      EndIf
+      ConfigAddDevice = @True
+   EndIf
+   
+   If slConfig.Modified And bLoadSave Then
+      slConfig.Save
+   EndIf
+EndFunction
+
+;-----------------------------------------------------------------------------
+;
+;-----------------------------------------------------------------------------
+Function LoadWinIniSection( section )
+   ini = LoadFile( "C:\WINDOWS\WIN.INI" )
+   If ini.Find( "[" & section & "]" ) Then
+      nstart = ini.Index + 1
+      If ini.Find( "[", nstart ) Then
+         nend = ini.Index - 1
+      Else
+         nend = index.Count - 1
+      EndIf
+      section = New SLIST
+      For i = nstart To nend 
+         entry = Trim(ini.List(i))
+         if entry <> "" then
+            section.AddItem ini.List(i)
+         endif
+      Next i
+      LoadWinIniSection = section
+   Else
+      LoadWinIniSection = 0
+   EndIf
+EndFunction
+
+'-----------------------------------------------------------------------------
+'
+'-----------------------------------------------------------------------------
+Sub BeautifyConfigSys(slist)
+   bLoadSave = LoadSave("BeautifyConfigSys", "C:\CONFIG.SYS", slist)
+   If bLoadSave Then
+      slConfig = LoadFile("C:\CONFIG.SYS")
+   Else
+      slConfig = slist
+   EndIf
+
+   If Not slConfig.Locate("BOOTCON") Then
+      slDevice = New Slist
+      slOther  = New Slist
+      
+      For i = 0 to slConfig.Count-1
+         sText = LCase(Trim(slConfig.List(i)))
+         If Left(sText, 6) = "device" Then
+            slDevice.AddItem sText
+         ElseIf sText <> "" And Left(sText, 3) <> "rem" Then
+            slOther.AddItem sText
+         EndIf
+      Next i
+
+      'Reshuffle parameters (excluding device statements) in this order:
+      sKeywords = "buffers,files,fcbs,stacks,lastdrive,dos,country,shell"
+      
+      slOrder = New Slist
+      For i = 1 to Tokens(sKeywords) 
+         If slOther.Find(Token(sKeywords, i)) Then
+            slOrder.AddItem slOther.Text
+            slOther.RemoveItem slOther.Index
+         EndIf
+      Next i 
+      
+      
+      slConfig.Clear
+      slConfig.AddItem slOrder
+      slConfig.AddItem slOther
+      slConfig.AddItem slDevice
+      
+      If slConfig.Modified And bLoadSave Then
+         slConfig.Save
+      EndIf
+   EndIf
+EndSub
+      
+;-----------------------------------------------------------------------------
+; HELPER FUNCTIONS
+;-----------------------------------------------------------------------------
+Function LoadSave(sFuncName, sFilename, slist)
+   If VarType(slist) = @V_SLIST Then
+      If slist.FileName <> sFilename Then
+         MsgBox sFuncName & ": SLIST object does not contain " & sFilename, @MB_ICONSTOP
+         Stop
+      EndIf
+      LoadSave = @False
+   Else
+      If slist <> 0 Then
+         MsgBox sFuncName & ": first argument must be SLIST ref or zero.", @MB_ICONSTOP
+         Stop
+      EndIf
+      LoadSave = @True
+   EndIf
+EndFunction

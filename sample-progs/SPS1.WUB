@@ -1,0 +1,60 @@
+[main]
+Title=Change Rumba Login Screen for SPS1
+Version=SPS1,1.0,0
+
+[epilog]
+sCaption = "Rumba Login Screen"
+sFileName = "c:\prog\rumba\sps1.dsp"
+sIPPrefix = "145.26.20."
+sOctetSPS1 = "4"
+sOctetCLMenu = "1"
+   
+iLen = FileLen(sFileName)
+fiDsp = New File
+fiDsp.Open sFileName, @Binary
+      
+sBuffer = fiDsp.Read(iLen)
+iPos = InStr(sBuffer, sIPPrefix)
+If iPos = 0 Then
+   sMsg = "Cannot locate host IP address in " & sFileName & "."
+   Beep @MB_IconStop
+   MsgBox sMsg, @MB_IconStop, sCaption
+   Exit
+EndIf
+
+sIPAddress = TruncString(Mid(sBuffer, iPos, 15))
+sLastOctet = Token(sIPAddress, 4, ".")
+   
+If sLastOctet = sOctetSPS1 Then
+   iDefault = 1
+ElseIf sLastOctet = sOctetCLMenu Then
+   iDefault = 2 
+Else
+   sMsg = "The IP address in " & sFileName & " is unknown."
+   Beep @MB_IconStop
+   MsgBox sMsg, @MB_IconStop, sCaption
+   Exit
+EndIf
+
+sPrompt = "Please select desired login screen:"
+sOptions = "SPS|CL/Menu"
+iOption = OptionBox(sPrompt, sCaption, sOptions, iDefault)
+If iOption = 1 Then
+   sIPAddress = sIPPrefix & "4"
+ElseIf iOption = 2 Then
+   sIPAddress = sIPPrefix & "1"
+Else
+   sIPAddress = ""
+EndIf
+   
+If sIPAddress <> "" Then
+   sWork = String(15, 0)
+   sWork = Overlay(sWork, 1, Trim(sIPAddress))
+   sBuffer = Overlay(sBuffer, iPos, sWork)
+   fiDsp.SeekSet 0
+   fiDsp.Write sBuffer
+   sMsg = "The Rumba configuration file has been updated successfully."
+   MsgBox sMsg, @MB_IconInformation, sCaption
+EndIf
+      
+fiDsp.Close

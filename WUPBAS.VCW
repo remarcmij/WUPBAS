@@ -1,0 +1,14 @@
+[MSVC Status File]
+Version=1.00
+ProjectType=0
+ArgsOrCaller=c:\data\c\wup\wbrun\wbrun.exe
+External=0
+BrkptCount=1
+BrkptType1=0
+BrkptActive1=1
+BrkptAmbig1=0
+BrkptIndex1=-1
+BrkptLoc1={,c:\data\c\wup\wupbas\wbfnfile.c,} .158
+WatchCount=2
+WatchExpr1=npTable[5]
+WatchExpr2=lpData,m

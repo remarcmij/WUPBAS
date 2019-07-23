@@ -1,0 +1,18 @@
+Sub LibMain()
+   Declare Function SendKeys Lib "sendkeys.dll" (ByVal lpszKeys As String) As Integer
+   Declare Function GetLastActivePopup Lib "User" (ByVal hwndOwnder As Integer) As Integer
+   Declare Sub BringWindowToTop Lib "User" (ByVal hWnd As Integer)
+   Declare Function SndPlaySound% Lib "MMSystem" (ByVal lpszSoundName$, ByVal wFlags%)
+EndSub
+
+Sub AppActivate(sTitleText)
+   hwnd = FindWindow(sTitleText)
+   If hwnd Then
+      hwndFirstChild = GetLastActivePopup(hwnd)
+      BringWindowToTop hwnd
+      If hwnd <> hwndFirstChild Then
+         BringWindowToTop hwndFirstChild
+      EndIf
+   EndIf
+EndSub
+

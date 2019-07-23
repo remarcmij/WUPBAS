@@ -1,0 +1,128 @@
+Type CLASSENTRY
+   dwSize As Long
+   hInst As Integer
+   szClassName As String*256
+   wNext As Integer
+End Type
+
+Declare Function ClassFirst Lib "Toolhelp.DLL" (lpc As CLASSENTRY) As Integer
+Declare Function ClassNext Lib "Toolhelp.DLL" (lpc As CLASSENTRY) As Integer
+
+Type MODULEENTRY
+   dwSize As Long
+   szModule As String*10
+   hModule As Integer
+   wcUsage As Integer
+   szExePath As String*256
+   wNext As Integer
+End Type
+
+Declare Function ModuleFirst Lib "Toolhelp.DLL" (lpModule As MODULEENTRY) As Integer
+Declare Function ModuleNext Lib "Toolhelp.DLL" (lpModule As MODULEENTRY) As Integer
+Declare Function ModuleFindHandle Lib "Toolhelp.DLL" (lpme As MODULEENTRY, ByVal hmod As Integer) As Integer
+
+Type TASKENTRY
+   dwSize As Long
+   hTask As Integer
+   hTaskParent As Integer
+   hInst As Integer
+   hModule As Integer
+   wSS As Integer
+   wSP As Integer
+   wStackTop As Integer
+   wStackMinimum As Integer
+   wStackBottom As Integer
+   wcEvent As Integer
+   hQueue As Integer
+   szModule As String*10
+   wPSPOffset As Integer
+   hNext As Integer
+End Type
+    
+Declare Function TaskFirst Lib "Toolhelp.DLL" (lpte As TASKENTRY) As Integer
+Declare Function TaskNext Lib "Toolhelp.DLL" (lpte As TASKENTRY) As Integer
+
+Sub Main()
+   ClassList
+End Sub
+'-----------------------------------------------------------------------------
+' This function returns an Slist containing the names of the classes 
+' currently registered in Windows
+'-----------------------------------------------------------------------------
+Sub ClassList()
+   Dim ce As CLASSENTRY
+   Dim me As MODULEENTRY
+   
+   sl = New Slist
+   
+   ce.dwSize = Len(ce) 
+   
+   fMore = ClassFirst(ce) 
+   Do While fMore
+      sl.AddItem TruncString(ce.szClassName) & ", 0x" & Right("0000" & Hex(ce.hInst),4)
+      fMore = ClassNext(ce)
+   Loop
+   
+   iSel = -1
+   Do
+      iSel = sl.ListBox("Select Class for owning module info:","Windows Class List",iSel,True)
+      If iSel = -1 Then
+         ExitDo
+      Else
+         hMod = Interpret(Token(sl.List(iSel),2))
+         me.dwSize = Len(me)
+         If ModuleFindHandle(me, hMod) <> 0 Then
+            sl1 = New Slist
+            sl1.AddItem TruncString(me.szModule)
+            sl1.AddItem "0x" & Right("0000" & Hex(ce.hInst),4)
+            sl1.AddItem TruncString(me.szExePath)
+         EndIf
+         sl1.ListBox "Module Name|Module handle|File name",sl.List(iSel)
+      EndIf
+   Loop
+EndSub
+
+'-----------------------------------------------------------------------------
+' This function returns an Slist containing the file names of the currently
+' loaded modules in Windows
+'-----------------------------------------------------------------------------
+Function ModuleList()
+   Dim me As MODULEENTRY
+   
+   sl = New Slist
+   me.dwSize = Len(me) 
+   
+   fMore = ModuleFirst(me) 
+   Do While fMore
+      sl.AddItem TruncString(me.szExePath)
+      fMore = ModuleNext(me)
+   Loop
+   ModuleList = sl
+EndFunction
+   
+'-----------------------------------------------------------------------------
+' This function returns an Slist containing the file names of the currently
+' running tasks in Windows
+'-----------------------------------------------------------------------------
+Function TaskList()
+   Dim te As TASKENTRY
+   Dim me As MODULEENTRY
+   
+   sl = New Slist
+   te.dwSize = Len(te) 
+   me.dwSize = Len(me)
+   
+   fMore = TaskFirst(te) 
+   Do While fMore
+      sText = TruncString(te.szModule)
+      If ModuleFindHandle(me, te.hModule) <> 0 Then
+         sText = sText & ", " & TruncString(me.szExePath)
+      EndIf
+      sl.AddItem sText
+      fMore = TaskNext(te)
+   Loop
+   TaskList = sl
+EndFunction
+   
+   
+

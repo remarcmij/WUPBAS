@@ -1,0 +1,49 @@
+Global Const MF_BYPOSITION = &H400
+Global Const MF_GRAYED = &H1
+Global Const GW_CHILD = 5
+Global Const WM_USER = 0x0400
+Global Const EM_SETREADONLY = WM_USER+31
+
+Declare Function GetMenu Lib "User" (ByVal hWnd As Integer) As Integer
+Declare Function GetSubMenu Lib "User" (ByVal hMenu As Integer, ByVal nPos As Integer) As Integer
+Declare Function EnableMenuItem Lib "User" (ByVal hMenu As Integer, ByVal wIDEnableItem As Integer, ByVal wEnable As Integer) As Integer
+Declare Function GetWindow Lib "User" (ByVal hWnd As Integer, ByVal wCmd As Integer) As Integer
+Declare Function SendMessage Lib "User" (ByVal hWnd As Integer, ByVal wMsg As Integer, ByVal wParam As Integer, lParam As Any) As Long
+
+' This sample shows AUTOEXEC.BAT in Notepad and disables the New, Open, Save
+' and SaveAs menu item so that the file cannot be changed. It also sets
+' the edit control to read-only so that the text cannot be changed.
+' Tricky stuff.
+
+Sub Main()
+
+   Shell "notepad.exe c:\autoexec.bat",,@NoWait
+   hwnd = FindWindow("Notepad - AUTOEXEC.BAT")
+
+   If hwnd Then
+
+      hmenu = GetMenu(hwnd)
+      hmenu = GetSubMenu(hmenu,0)
+
+      'Disable New menu item
+      EnableMenuItem hmenu,0,MF_BYPOSITION+MF_GRAYED
+
+      'Disable Open menu item
+      EnableMenuItem hmenu,1,MF_BYPOSITION+MF_GRAYED
+
+      'Disable Save menu item
+      EnableMenuItem hmenu,2,MF_BYPOSITION+MF_GRAYED
+
+      'Disable Save As menu item
+      EnableMenuItem hmenu,3,MF_BYPOSITION+MF_GRAYED
+
+      ' Get handle of edit window
+      hwndEdit = GetWindow(hwnd, GW_CHILD)
+
+      ' Set edit control to read-only
+      If hwndEdit Then
+         SendMessage hwndEdit, EM_SETREADONLY, True, ByVal 0
+      EndIf
+
+   End If
+End Sub

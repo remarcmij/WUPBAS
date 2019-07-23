@@ -1,0 +1,15 @@
+[Main]
+Debug=No
+Title=Current test script
+Version=Test,1.0
+Quiet=No
+Licensed=No
+EnableAltDrive=No
+
+[prolog]
+Say "This is the prolog"
+
+   
+
+
+
